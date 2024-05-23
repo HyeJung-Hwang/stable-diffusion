@@ -132,7 +132,7 @@ class ImageNetBase(Dataset):
 
 
 class ImageNetTrain(ImageNetBase):
-    NAME = "ILSVRC2012_train"
+    NAME = "train"
     URL = "http://www.image-net.org/challenges/LSVRC/2012/"
     AT_HASH = "a306397ccf9c2ead27155983c254227c0fd938e2"
     FILES = [
@@ -154,8 +154,8 @@ class ImageNetTrain(ImageNetBase):
             cachedir = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
             self.root = os.path.join(cachedir, "autoencoders/data", self.NAME)
 
-        self.datadir = os.path.join(self.root, "data")
-        self.txt_filelist = os.path.join(self.root, "filelist.txt")
+        self.datadir = os.path.join(self.root)
+        self.txt_filelist = os.path.join("/mnt/sata/train", "filelist.txt")
         self.expected_length = 1281167
         self.random_crop = retrieve(self.config, "ImageNetTrain/random_crop",
                                     default=True)
@@ -183,19 +183,19 @@ class ImageNetTrain(ImageNetBase):
                     os.makedirs(subdir, exist_ok=True)
                     with tarfile.open(subpath, "r:") as tar:
                         tar.extractall(path=subdir)
+        datadir = self.datadir
+        filelist = glob.glob(os.path.join(datadir, "**", "*.JPEG"))
+        filelist = [os.path.relpath(p, start=datadir) for p in filelist][:10000]
+        filelist = sorted(filelist)
+        filelist = "\n".join(filelist)+"\n"
+        with open(self.txt_filelist, "w") as f:
+            f.write(filelist)
 
-            filelist = glob.glob(os.path.join(datadir, "**", "*.JPEG"))
-            filelist = [os.path.relpath(p, start=datadir) for p in filelist]
-            filelist = sorted(filelist)
-            filelist = "\n".join(filelist)+"\n"
-            with open(self.txt_filelist, "w") as f:
-                f.write(filelist)
-
-            tdu.mark_prepared(self.root)
+            # tdu.mark_prepared(self.root)
 
 
 class ImageNetValidation(ImageNetBase):
-    NAME = "ILSVRC2012_validation"
+    NAME = "val"
     URL = "http://www.image-net.org/challenges/LSVRC/2012/"
     AT_HASH = "5d6d0df7ed81efd49ca99ea4737e0ae5e3a5f2e5"
     VS_URL = "https://heibox.uni-heidelberg.de/f/3e0f6e9c624e45f2bd73/?dl=1"
@@ -219,8 +219,8 @@ class ImageNetValidation(ImageNetBase):
         else:
             cachedir = os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
             self.root = os.path.join(cachedir, "autoencoders/data", self.NAME)
-        self.datadir = os.path.join(self.root, "data")
-        self.txt_filelist = os.path.join(self.root, "filelist.txt")
+        self.datadir = os.path.join(self.root)
+        self.txt_filelist = os.path.join("/mnt/sata/val", "filelist.txt")
         self.expected_length = 50000
         self.random_crop = retrieve(self.config, "ImageNetValidation/random_crop",
                                     default=False)
@@ -228,7 +228,6 @@ class ImageNetValidation(ImageNetBase):
             # prep
             print("Preparing dataset {} in {}".format(self.NAME, self.root))
 
-            datadir = self.datadir
             if not os.path.exists(datadir):
                 path = os.path.join(self.root, self.FILES[0])
                 if not os.path.exists(path) or not os.path.getsize(path)==self.SIZES[0]:
@@ -257,15 +256,15 @@ class ImageNetValidation(ImageNetBase):
                     src = os.path.join(datadir, k)
                     dst = os.path.join(datadir, v)
                     shutil.move(src, dst)
+        datadir = self.datadir
+        filelist = glob.glob(os.path.join(datadir, "**", "*.JPEG"))
+        filelist = [os.path.relpath(p, start=datadir) for p in filelist][:50]
+        filelist = sorted(filelist)
+        filelist = "\n".join(filelist)+"\n"
+        with open(self.txt_filelist, "w") as f:
+            f.write(filelist)
 
-            filelist = glob.glob(os.path.join(datadir, "**", "*.JPEG"))
-            filelist = [os.path.relpath(p, start=datadir) for p in filelist]
-            filelist = sorted(filelist)
-            filelist = "\n".join(filelist)+"\n"
-            with open(self.txt_filelist, "w") as f:
-                f.write(filelist)
-
-            tdu.mark_prepared(self.root)
+            # tdu.mark_prepared(self.root)
 
 
 
@@ -364,7 +363,7 @@ class ImageNetSR(Dataset):
             LR_image = np.array(LR_image).astype(np.uint8)
 
         else:
-            LR_image = self.degradation_process(image=image)["image"]
+            LR_image = self.degradation_process(image=image)['image']
 
         example["image"] = (image/127.5 - 1.0).astype(np.float32)
         example["LR_image"] = (LR_image/127.5 - 1.0).astype(np.float32)

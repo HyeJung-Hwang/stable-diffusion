@@ -42,8 +42,8 @@ model:
       target: ldm.models.autoencoder.VQModelInterface
       params:
         embed_dim: 4
-        n_embed: 16384
-        ckpt_path: configs/first_stage_models/vq-f8/model.yaml
+        n_embed: 256
+        ckpt_path: /home/hjhwang/stable-diffusion/configs/first_stage_models/vq-f8-model.ckpt
         ddconfig:
           double_z: false
           z_channels: 4
@@ -70,19 +70,21 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 64
+    batch_size: 16
     num_workers: 12
     wrap: false
     train:
       target: ldm.data.imagenet.ImageNetTrain
       params:
+        data_root: /home/hyeonan/imagenet 
         config:
           size: 256
-    validation:
-      target: ldm.data.imagenet.ImageNetValidation
-      params:
-        config:
-          size: 256
+    # validation:
+    #   target: ldm.data.imagenet.ImageNetValidation
+    #   params:
+    #     data_root: /home/hyeonan/imagenet  
+    #     config:
+    #       size: 256
 
 
 lightning:
@@ -96,3 +98,4 @@ lightning:
 
   trainer:
     benchmark: True
+    max_epochs: 100

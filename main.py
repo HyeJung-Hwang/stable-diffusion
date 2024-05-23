@@ -596,7 +596,7 @@ if __name__ == "__main__":
         else:
             assert os.path.isdir(opt.resume), opt.resume
             logdir = opt.resume.rstrip("/")
-            ckpt = os.path.join(logdir, "checkpoints", "last.ckpt")
+            ckpt = os.path.join("/mnt/sata",logdir, "checkpoints", "last.ckpt")
 
         opt.resume_from_checkpoint = ckpt
         base_configs = sorted(glob.glob(os.path.join(logdir, "configs/*.yaml")))
@@ -615,8 +615,8 @@ if __name__ == "__main__":
         nowname = now + name + opt.postfix
         logdir = os.path.join(opt.logdir, nowname)
 
-    ckptdir = os.path.join(logdir, "checkpoints")
-    cfgdir = os.path.join(logdir, "configs")
+    ckptdir = os.path.join("/mnt/sata",logdir, "checkpoints")
+    cfgdir = os.path.join("/mnt/sata",logdir, "configs")
     seed_everything(opt.seed)
 
     try:
@@ -685,10 +685,10 @@ if __name__ == "__main__":
                 "save_last": True,
             }
         }
-        if hasattr(model, "monitor"):
-            print(f"Monitoring {model.monitor} as checkpoint metric.")
-            default_modelckpt_cfg["params"]["monitor"] = model.monitor
-            default_modelckpt_cfg["params"]["save_top_k"] = 3
+        # if hasattr(model, "monitor"):
+        #     print(f"Monitoring {model.monitor} as checkpoint metric.")
+        #     default_modelckpt_cfg["params"]["monitor"] = model.monitor
+        #     default_modelckpt_cfg["params"]["save_top_k"] = 3
 
         if "modelcheckpoint" in lightning_config:
             modelckpt_cfg = lightning_config.modelcheckpoint
@@ -851,16 +851,6 @@ if __name__ == "__main__":
         if not opt.no_test and not trainer.interrupted:
             trainer.test(model, data)
     except RuntimeError as err:
-        if MULTINODE_HACKS:
-            import requests
-            import datetime
-            import os
-            import socket
-            device = os.environ.get("CUDA_VISIBLE_DEVICES", "?")
-            hostname = socket.gethostname()
-            ts = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-            resp = requests.get('http://169.254.169.254/latest/meta-data/instance-id')
-            print(f'ERROR at {ts} on {hostname}/{resp.text} (CUDA_VISIBLE_DEVICES={device}): {type(err).__name__}: {err}', flush=True)
         raise err
     except Exception:
         if opt.debug and trainer.global_rank == 0:
