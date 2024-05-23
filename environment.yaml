@@ -1,12 +1,13 @@
-name: ldm
+name: ldm4
 channels:
   - pytorch
+  - conda-forge
   - defaults
 dependencies:
   - python=3.8.5
   - pip=20.3
-  - cudatoolkit=11.0
-  - pytorch=1.7.0
+  - cudatoolkit=11.4
+  - pytorch=1.12.0
   - torchvision=0.8.1
   - numpy=1.19.2
   - pip:
@@ -15,13 +16,14 @@ dependencies:
     - pudb==2019.2
     - imageio==2.9.0
     - imageio-ffmpeg==0.4.2
+    - torchmetrics==0.6
     - pytorch-lightning==1.4.2
     - omegaconf==2.1.1
     - test-tube>=0.7.5
     - streamlit>=0.73.1
     - einops==0.3.0
     - torch-fidelity==0.3.0
-    - transformers==4.3.1
+    - transformers==4.19.2
     - webdataset==0.2.5
     - kornia==0.6
     - -e git+https://github.com/CompVis/taming-transformers.git@master#egg=taming-transformers
